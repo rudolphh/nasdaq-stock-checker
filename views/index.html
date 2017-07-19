@@ -35,25 +35,25 @@
       <code>{"stockData":{"stock":"GOOG","price":"786.90","likes":1}}</code><br>
       <code>{"stockData":[{"stock":"MSFT","price":"62.30","rel_likes":-1},{"stock":"GOOG","price":"786.90","rel_likes":1}]}</code>
     </div>
-    <hr style='margin: 50px'>
+    <hr />
     <div id='testui'>
-      <h2 style="text-align: left">Front-End:</h2>
+      <h2>Front-End:</h2>
       <h3>Get single price and total likes</h3>
       <form id="testForm2" class="border">
-        <input type="text" name="stock" placeholder="goog" style="width: 100px" required=''>
+        <input type="text" name="stock" placeholder="goog" required=''>
         <input type="checkbox" name="like" value=true> Like?<br>
         <button type="submit">Get Price!</button>
       </form>
       <h3>Compare and get relative likes</h3>
       <form id="testForm" class="border">
-        <input type="text" name="stock" placeholder="goog" style="width: 100px" required=''>
-        <input type="text" name="stock" placeholder="msft" style="width: 100px" required=''>
+        <input type="text" name="stock" placeholder="goog" required=''>
+        <input type="text" name="stock" placeholder="msft" required=''>
         <input type="checkbox" name="like" value=true> Like both?<br>
         <button type="submit">Get Price!</button>
       </form>
       <code id='jsonResult'></code>
     </div>
-    <hr style='margin: 50px; margin-top: 200px'>
+    <hr />
     <!-- Your web-app is https, so your scripts need to be too -->
     <script src="https://code.jquery.com/jquery-2.2.1.min.js"
             integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="

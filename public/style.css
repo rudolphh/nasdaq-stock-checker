@@ -1,2 +1,5 @@
 #userstories { margin-left: 5%; margin-top: 5%; }
 #testui { margin-left: 5%; }
+#testui h2 {  }
+hr { margin: 50px; }
+input[name='stock'] { width: 100px; }
