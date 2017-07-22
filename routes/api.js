@@ -20,9 +20,17 @@ module.exports = function (app) {
     .get(function (req, res){
 
        var stock =  req.query.stock;
+       var likes = req.query.likes || false;
        var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
        ip = ip.split(',')[0];
+
        console.log(stock);
+
+       // if stock is array
+         // request first stock info and second
+         // search for likes in db
+         // bring stockdata together
+       // else 
 
        request("https://finance.google.com/finance/info?q=NASDAQ%3a"+stock,
         function (error, response, body) {
