@@ -27,6 +27,8 @@ module.exports = function (app) {
       var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       ip = ip.split(',')[0];
 
+      var oneStock = !Array.isArray(stock);
+
       console.log(stock);
 
       // if stock is array
@@ -54,24 +56,17 @@ module.exports = function (app) {
 
       var callbackTwo = function(error, response, body){
         setStockData(error, response, body);
-        res.json({ stockData: stockData });
+        stockData.length ? res.json({ stockData: stockData }) : res.send('no stock data');
       };
 
       var callbackOne = function(error, response, body){
         setStockData(error, response, body);
-        if(Array.isArray(stock)) {
-          request(apiURL+stock[1], callbackTwo);
-        } else {
-          res.json({ stockData: stockData });
-        }
+        if(oneStock){
+          stockData.length ? res.json({ stockData: stockData }) : res.send('no stock data');
+        } else request(apiURL+stock[1], callbackTwo);
       }
 
-      if(Array.isArray(stock)) {
-        request(apiURL+stock[0], callbackOne);
-      } else {
-        request(apiURL+stock, callbackOne);
-      }
-
+      oneStock ? request(apiURL+stock, callbackOne) : request(apiURL+stock[0], callbackOne);
 
     });// end get
 
