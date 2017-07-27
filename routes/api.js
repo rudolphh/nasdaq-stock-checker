@@ -31,16 +31,29 @@ module.exports = function (app) {
 
       console.log(stock);
 
-      // if stock is array
-       // request first stock info and second
-       // search for likes in db
-       // if likes
-         // search likes for stock
-       // bring stockdata together
-      // else
-      // request api stock info
-      // request db like info
-      //
+      // check for multiple stocks or one?
+      // do we like this stock or stocks?
+
+      // if single stock and like
+        // if results for the stock
+          // query by stock name in likes collection and only add new documents with unique ip fields
+          // get count of likes for the particular stock
+          // return document with stock, price, and likes
+        // else respond 'no stock data'
+
+      // if single and no like
+        // if results for the stock
+          // query by stock name in likes collection
+          // return document with stock, price, and likes count
+
+      // if multiple stocks and like
+        // async series checking first as single
+        // if first doesn't exist, treat second as single
+        // if neither exist respond 'no stock data'
+        // else once async series is done
+          // get the difference of each as the like field value in stockData
+
+      // do the same without like
 
       var setStockData = function(error, response, body){
         if (!error && response.statusCode == 200) {
