@@ -30,7 +30,7 @@ module.exports = function (app) {
       var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       ip = ip.split(',')[0];
 
-      console.log(stock);
+      //console.log(stock);
 
 
       // check for multiple stocks or one?
@@ -57,7 +57,25 @@ module.exports = function (app) {
 
       // do the same without like
 
-      var setStockData = function(error, response, body, callback){
+
+      oneStock ? request(apiURL+stock, getStockOne) : request(apiURL+stock[0], getStockOne);
+
+
+      function getStockOne(error, response, body){
+        setStockData(error, response, body, function setComplete(){
+          if(oneStock){
+            stockData.length ? res.json({ stockData: stockData }) : res.send('no stock data');
+          } else request(apiURL+stock[1], getStockTwo);
+        });
+      }
+
+      function getStockTwo(error, response, body){
+        setStockData(error, response, body, function setComplete(){
+          stockData.length ? res.json({ stockData: stockData }) : res.send('no stock data');
+        });
+      };
+
+      var setStockData = function(error, response, body, next){
         if (!error && response.statusCode == 200) {
           var data = JSON.parse(body.substring(3))[0];
 
@@ -67,26 +85,8 @@ module.exports = function (app) {
              likes: 0
           });
         }
-        callback();
+        next();
       };
-
-      var getStockTwo = function(error, response, body){
-        setStockData(error, response, body, function dataSet(){
-          stockData.length ? res.json({ stockData: stockData }) : res.send('no stock data');
-        });
-      };
-
-      var getStockOne = function(error, response, body){
-        setStockData(error, response, body, function dataSet(){
-          if(oneStock){
-            stockData.length ? res.json({ stockData: stockData }) : res.send('no stock data');
-          } else request(apiURL+stock[1], getStockTwo);
-        });
-      }
-
-      oneStock ? request(apiURL+stock, getStockOne) : request(apiURL+stock[0], getStockOne);
-
-
 
 
     });// end get
