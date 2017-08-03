@@ -56,6 +56,8 @@ module.exports = function (app) {
           // get the difference of each as the like field value in stockData
 
       // do the same without like
+      //
+      // hi
 
 
       oneStock ? request(apiURL+stock, getStockOne) : request(apiURL+stock[0], getStockOne);
@@ -79,13 +81,20 @@ module.exports = function (app) {
         if (!error && response.statusCode == 200) {
           var data = JSON.parse(body.substring(3))[0];
 
+          MongoClient.connect(CONNECTION_STRING, function(err, db) {
+
+
+          });
+
           stockData.push({
              stock: data.t,
              price: data.l,
              likes: 0
           });
+
+          next();
         }
-        next();
+        else { res.send ( error ); }
       };
 
 
