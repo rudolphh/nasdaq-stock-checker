@@ -32,32 +32,6 @@ module.exports = function (app) {
 
       //console.log(ip);
 
-
-      // check for multiple stocks or one?
-      // do we like this stock or stocks?
-
-      // if single stock and like
-        // if results for the stock
-          // query by stock name in likes collection and only add new documents with unique ip fields
-          // get count of likes for the particular stock
-          // return document with stock, price, and likes
-        // else respond 'no stock data'
-
-      // if single and no like
-        // if results for the stock
-          // query by stock name in likes collection
-          // return document with stock, price, and likes count
-
-      // if multiple stocks and like
-        // async series checking first as single
-        // if first doesn't exist, treat second as single
-        // if neither exist respond 'no stock data'
-        // else once async series is done
-          // get the difference of each as the like field value in stockData
-
-      // do the same without like
-
-
       oneStock ? request(apiURL+stock, getStockOne) : request(apiURL+stock[0], getStockOne);
 
 
@@ -81,46 +55,37 @@ module.exports = function (app) {
         if (!error && response.statusCode == 200) {
           var data = JSON.parse(body.substring(3))[0];
 
-          //if( likes ) {
-            MongoClient.connect(CONNECTION_STRING, function connected(err, db) {
-              if( !err ){
-                var collection = db.collection('likes');
+          MongoClient.connect(CONNECTION_STRING, function connected(err, db) {
+            if( !err ){
+              var collection = db.collection('likes');
 
-                collection.findAndModify(
-                  { stock: data.t },
-                  [],// sort order
-                  likes ? { $addToSet: { ips: ip } } : {},
-                  {
-                    new: likes ? true : false,
-                    upsert: likes ? true : false
-                  },
-                  function (errors, doc) {
-                    if( !errors ) {
-                      console.log(doc);
+              collection.findAndModify(
+                { stock: data.t },
+                [],// sort order
+                likes ? { $addToSet: { ips: ip } } : { $set: { stock: data.t } },
+                {
+                  new: likes ? true : false,
+                  upsert: likes ? true : false
+                },
+                function foundOrNot(errors, doc) {
+                  if( !errors ) {
+                    console.log(doc);
 
-                      stockData.push({
-                         stock: data.t,
-                         price: data.l,
-                         likes: doc.value ? doc.value.ips.length : 0
-                      });
+                    stockData.push({
+                       stock: data.t,
+                       price: data.l,
+                       likes: doc.value ? doc.value.ips.length : 0
+                    });
 
-                      next();
-                    } else {
-                      res.send(errors);
-                    }
-                  }
-                );
-              } else {
-                res.send(err);
-              }
+                    next();
+                  } else res.send(errors);// else errors in findAndModify
+                }// end foundOrNot
+              );
+            } else res.send(err);// else err in db connect
 
-            });// end MongoClient.connect
-          }
-
-
-        //}
-        //else { res.send ( error ); }
-      };
+          });// end MongoClient.connect
+        }// end if (!error && response.statusCode)
+      };// end setStockData
 
 
     });// end get
