@@ -30,7 +30,7 @@ module.exports = function (app) {
       var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       ip = ip.split(',')[0];
 
-      //console.log(stock);
+      //console.log(ip);
 
 
       // check for multiple stocks or one?
@@ -81,19 +81,32 @@ module.exports = function (app) {
         if (!error && response.statusCode == 200) {
           var data = JSON.parse(body.substring(3))[0];
 
-          if( likes ) {
-            MongoClient.connect(CONNECTION_STRING, function(err, db) {
+          //if( likes ) {
+            MongoClient.connect(CONNECTION_STRING, function connected(err, db) {
               if( !err ){
                 var collection = db.collection('likes');
 
-                collection.update(
-                  { stock: data.t, ip: ip },
-                  { stock: data.t, ip: ip },
-                  { upsert: true }, function(errors, doc) {
+                collection.findAndModify(
+                  { stock: data.t },
+                  [],// sort order
+                  likes ? { $addToSet: { ips: ip } } : {},
+                  {
+                    new: likes ? true : false,
+                    upsert: likes ? true : false
+                  },
+                  function (errors, doc) {
                     if( !errors ) {
-                      console.log(doc.ip);
+                      console.log(doc);
+
+                      stockData.push({
+                         stock: data.t,
+                         price: data.l,
+                         likes: doc.value ? doc.value.ips.length : 0
+                      });
+
+                      next();
                     } else {
-                      res.send(errors)
+                      res.send(errors);
                     }
                   }
                 );
@@ -102,18 +115,11 @@ module.exports = function (app) {
               }
 
             });// end MongoClient.connect
-          } 
+          }
 
 
-          stockData.push({
-             stock: data.t,
-             price: data.l,
-             likes: 0
-          });
-
-          next();
-        }
-        else { res.send ( error ); }
+        //}
+        //else { res.send ( error ); }
       };
 
 
