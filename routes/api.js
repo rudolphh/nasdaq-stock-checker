@@ -34,7 +34,6 @@ module.exports = function (app) {
 
       oneStock ? request(apiURL+stock, getStockOne) : request(apiURL+stock[0], getStockOne);
 
-
       function getStockOne(error, response, body){
         setStockData(error, response, body, function setComplete(){
           if(oneStock){
@@ -47,7 +46,15 @@ module.exports = function (app) {
 
       function getStockTwo(error, response, body){
         setStockData(error, response, body, function setComplete(){
-          stockData.length ? res.json({ stockData: stockData }) : res.send('no stock data');
+          if( stockData.length ){
+            if ( stockData.length === 2 ) {
+              stockData[0].rel_likes = stockData[0].likes - stockData[1].likes;
+              stockData[1].rel_likes = stockData[1].likes - stockData[0].likes;
+              delete stockData[0].likes;
+              delete stockData[1].likes;
+            }
+            res.json({ stockData: stockData });
+          } else res.send('no stock data');
         });
       };
 
@@ -85,9 +92,8 @@ module.exports = function (app) {
 
           });// end MongoClient.connect
         }// end if (!error && response.statusCode)
+        else next();
       };// end setStockData
 
-
     });// end get
-
 };
