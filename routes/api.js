@@ -56,8 +56,6 @@ module.exports = function (app) {
           // get the difference of each as the like field value in stockData
 
       // do the same without like
-      //
-      // hi
 
 
       oneStock ? request(apiURL+stock, getStockOne) : request(apiURL+stock[0], getStockOne);
@@ -67,7 +65,9 @@ module.exports = function (app) {
         setStockData(error, response, body, function setComplete(){
           if(oneStock){
             stockData.length ? res.json({ stockData: stockData }) : res.send('no stock data');
-          } else request(apiURL+stock[1], getStockTwo);
+          } else {
+            request(apiURL+stock[1], getStockTwo);
+          }
         });
       }
 
@@ -81,10 +81,29 @@ module.exports = function (app) {
         if (!error && response.statusCode == 200) {
           var data = JSON.parse(body.substring(3))[0];
 
-          MongoClient.connect(CONNECTION_STRING, function(err, db) {
+          if( likes ) {
+            MongoClient.connect(CONNECTION_STRING, function(err, db) {
+              if( !err ){
+                var collection = db.collection('likes');
 
+                collection.update(
+                  { stock: data.t, ip: ip },
+                  { stock: data.t, ip: ip },
+                  { upsert: true }, function(errors, doc) {
+                    if( !errors ) {
+                      console.log(doc.ip);
+                    } else {
+                      res.send(errors)
+                    }
+                  }
+                );
+              } else {
+                res.send(err);
+              }
 
-          });
+            });// end MongoClient.connect
+          } 
+
 
           stockData.push({
              stock: data.t,
