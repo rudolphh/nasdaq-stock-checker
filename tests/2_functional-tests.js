@@ -91,7 +91,7 @@ suite('Functional Tests', function() {
             assert.property(res.body.stockData[0], 'price');
             assert.property(res.body.stockData[0], 'rel_likes');
             // rel_likes for amzn will be one as it has a like prev
-            rel_likes = Math.abs(res.body.stockData[0].rel_likes);
+            rel_likes = Math.abs(res.body.stockData[0].rel_likes); 
             done();
           });
       });
@@ -110,12 +110,7 @@ suite('Functional Tests', function() {
             assert.property(res.body.stockData[1], 'stock');
             assert.property(res.body.stockData[1], 'price');
             assert.property(res.body.stockData[1], 'rel_likes');
-          // goog gets a like, amzn like ignored (same ip), so rel_likes is zero
-          // if a user has already liked goog (before testing) in the db i have
-          // accounted for that here.
-            assert.equal(Math.abs(res.body.stockData[0].rel_likes),
-              first_likes < res.body.stockData[1].rel_likes ?
-                Math.abs(first_likes-likes) : 0);
+            assert.equal(Math.abs(res.body.stockData[0].rel_likes), 0);
             done();
           });
       });
