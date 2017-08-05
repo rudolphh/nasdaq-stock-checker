@@ -35,64 +35,64 @@ module.exports = function (app) {
       oneStock ? request(apiURL+stock, getStockOne) : request(apiURL+stock[0], getStockOne);
 
       function getStockOne(error, response, body){
-        setStockData(error, response, body, function setComplete(){
-          if(oneStock){
-            stockData.length ? res.json({ stockData: stockData }) : res.send('no stock data');
-          } else {
+        if (!error && response.statusCode == 200) {
+          setStockData(body, function setComplete(){
+            if(oneStock){
+              stockData.length ? res.json({ stockData: stockData }) : res.send('no stock data');
+            }
+          });
+          if(!oneStock) {
             request(apiURL+stock[1], getStockTwo);
           }
-        });
+        }// else error
       }
 
       function getStockTwo(error, response, body){
-        setStockData(error, response, body, function setComplete(){
-          if( stockData.length ){
-            if ( stockData.length === 2 ) {
-              stockData[0].rel_likes = stockData[0].likes - stockData[1].likes;
-              stockData[1].rel_likes = stockData[1].likes - stockData[0].likes;
-              delete stockData[0].likes;
-              delete stockData[1].likes;
-            }
-            res.json({ stockData: stockData });
-          } else res.send('no stock data');
-        });
+        if (!error && response.statusCode == 200) {
+          setStockData(body, function setComplete(){
+            if( stockData.length ){
+              if ( stockData.length === 2 ) {
+                stockData[0].rel_likes = stockData[0].likes - stockData[1].likes;
+                stockData[1].rel_likes = stockData[1].likes - stockData[0].likes;
+                delete stockData[0].likes;
+                delete stockData[1].likes;
+              }
+              res.json({ stockData: stockData });
+            } else res.send('no stock data');
+          });
+        }
       };
 
-      var setStockData = function(error, response, body, next){
-        if (!error && response.statusCode == 200) {
-          var data = JSON.parse(body.substring(3))[0];
+      var setStockData = function(body, next){
 
-          MongoClient.connect(CONNECTION_STRING, function connected(err, db) {
-            if( !err ){
-              var collection = db.collection('likes');
+        var data = JSON.parse(body.substring(3))[0];
 
-              collection.findAndModify(
-                { stock: data.t },
-                [],// sort order
-                likes ? { $addToSet: { ips: ip } } : { $set: { stock: data.t } },
-                {
-                  new: likes ? true : false,
-                  upsert: likes ? true : false
-                },
-                function foundOrNot(errors, doc) {
-                  if( !errors ) {
-                    console.log(doc);
+        MongoClient.connect(CONNECTION_STRING, function connected(err, db) {
+          if( !err ){
+            var collection = db.collection('likes');
 
-                    stockData.push({
-                       stock: data.t,
-                       price: data.l,
-                       likes: doc.value ? doc.value.ips.length : 0
-                    });
-
-                    next();
-                  } else res.send(errors);// else errors in findAndModify
-                }// end foundOrNot
-              );
-            } else res.send(err);// else err in db connect
-
-          });// end MongoClient.connect
-        }// end if (!error && response.statusCode)
-        else next();
+            collection.findAndModify(
+              { stock: data.t },
+              [],// sort order
+              likes ? { $addToSet: { ips: ip } } : { $set: { stock: data.t } },
+              {
+                new: likes,
+                upsert: likes
+              },
+              function foundOrNot(errors, doc) {
+                if( !errors ) {
+                  //console.log(doc);
+                  stockData.push({
+                     stock: data.t,
+                     price: data.l,
+                     likes: doc.value ? doc.value.ips.length : 0
+                  });
+                  next();
+                } else res.send(errors);// else errors in findAndModify
+              }// end foundOrNot
+            );
+          } else res.send(err);// else err in db connect
+        });// end MongoClient.connect
       };// end setStockData
 
     });// end get
