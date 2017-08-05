@@ -25,12 +25,12 @@ module.exports = function (app) {
       var stock =  req.query.stock;
       var oneStock = !Array.isArray(stock);
 
-      var likes = req.query.likes || false;
+      var like = req.query.like || false;
 
       var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       ip = ip.split(',')[0];
 
-      //console.log(ip);
+      //console.log(stock);
 
       oneStock ? request(apiURL+stock, getStockOne) : request(apiURL+stock[0], getStockOne);
 
@@ -39,11 +39,8 @@ module.exports = function (app) {
           setStockData(body, function setComplete(){
             if(oneStock){
               stockData.length ? res.json({ stockData: stockData }) : res.send('no stock data');
-            }
+            } else request(apiURL+stock[1], getStockTwo);
           });
-          if(!oneStock) {
-            request(apiURL+stock[1], getStockTwo);
-          }
         }// else error
       }
 
@@ -74,10 +71,10 @@ module.exports = function (app) {
             collection.findAndModify(
               { stock: data.t },
               [],// sort order
-              likes ? { $addToSet: { ips: ip } } : { $set: { stock: data.t } },
+              like ? { $addToSet: { ips: ip } } : { $set: { stock: data.t } },
               {
-                new: likes,
-                upsert: likes
+                new: like,
+                upsert: like
               },
               function foundOrNot(errors, doc) {
                 if( !errors ) {

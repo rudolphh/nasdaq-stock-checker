@@ -16,6 +16,7 @@ chai.use(chaiHttp);
 suite('Functional Tests', function() {
 
     suite('GET /api/stock-prices => stockData object', function() {
+      var first_likes;
       var likes;
       var rel_likes;
 
@@ -32,6 +33,7 @@ suite('Functional Tests', function() {
             assert.property(res.body.stockData[0], 'stock');
             assert.property(res.body.stockData[0], 'price');
             assert.property(res.body.stockData[0], 'likes');
+            first_likes = res.body.stockData[0].likes;
             done();
           });
       });
@@ -40,7 +42,7 @@ suite('Functional Tests', function() {
         this.timeout(5000);
         chai.request(server)
           .get('/api/stock-prices')
-          .query({ stock: 'amzn', likes: 'true' })
+          .query({ stock: 'amzn', like: 'true' })
           .end(function(err, res){
             assert.equal(res.status, 200);
             assert.isObject(res.body);
@@ -59,7 +61,7 @@ suite('Functional Tests', function() {
         this.timeout(5000);
         chai.request(server)
           .get('/api/stock-prices')
-          .query({ stock: 'amzn', likes: 'true' })
+          .query({ stock: 'amzn', like: 'true' })
           .end(function(err, res){
             assert.equal(res.status, 200);
             assert.isObject(res.body);
@@ -88,7 +90,7 @@ suite('Functional Tests', function() {
             assert.property(res.body.stockData[0], 'stock');
             assert.property(res.body.stockData[0], 'price');
             assert.property(res.body.stockData[0], 'rel_likes');
-            // ignores case where user previously liked one of the stocks
+            // rel_likes for amzn will be one as it has a like prev
             rel_likes = Math.abs(res.body.stockData[0].rel_likes);
             done();
           });
@@ -98,7 +100,7 @@ suite('Functional Tests', function() {
         this.timeout(5000);
         chai.request(server)
           .get('/api/stock-prices')
-          .query({ stock: ['amzn', 'goog'], likes: 'true' })
+          .query({ stock: ['amzn', 'goog'], like: 'true' })
           .end(function(err, res){
             assert.equal(res.status, 200);
             assert.isObject(res.body);
@@ -108,7 +110,12 @@ suite('Functional Tests', function() {
             assert.property(res.body.stockData[1], 'stock');
             assert.property(res.body.stockData[1], 'price');
             assert.property(res.body.stockData[1], 'rel_likes');
-            assert.equal(Math.abs(res.body.stockData[0].rel_likes), rel_likes);
+          // goog gets a like, amzn like ignored (same ip), so rel_likes is zero
+          // if a user has already liked goog (before testing) in the db i have
+          // accounted for that here.
+            assert.equal(Math.abs(res.body.stockData[0].rel_likes),
+              first_likes < res.body.stockData[1].rel_likes ?
+                Math.abs(first_likes-likes) : 0);
             done();
           });
       });
