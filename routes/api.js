@@ -52,9 +52,9 @@ module.exports = function (app) {
             res.json({ stockData: stockData });
           } else res.send('no stock data');
         });
-      };
+      }
 
-      var setStockData = function(error, response, body, next){
+      var setStockData = function (error, response, body, next){
         // if there was no error, and the stock was found in the api request
         if (!error && response.statusCode == 200) {
           var data = JSON.parse(body.substring(3))[0];
@@ -67,10 +67,7 @@ module.exports = function (app) {
                 { stock: data.t },
                 [],// no sort order
                 like ? { $addToSet: { ips: ip } } : { $set: { stock: data.t } },
-                {
-                  new: like,
-                  upsert: like
-                },
+                { new: true, upsert: like },
                 function findDone(errors, doc) {
                   if( !errors ) {
                     //console.log(doc);
