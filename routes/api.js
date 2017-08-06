@@ -19,19 +19,17 @@ module.exports = function (app) {
   app.route('/api/stock-prices')
     .get(function (req, res){
 
-      var apiURL = "https://finance.google.com/finance/info?q=NASDAQ%3a";
       var stockData = [];
-
       var stock =  req.query.stock;
       var oneStock = !Array.isArray(stock);
 
-      var like = req.query.like || false;
+      var apiURL = "https://finance.google.com/finance/info?q=NASDAQ%3a";
+      var like = (req.query.like === 'true');
 
       var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       ip = ip.split(',')[0];
 
       //console.log(stock);
-
       oneStock ? request(apiURL+stock, getStockOne) : request(apiURL+stock[0], getStockOne);
 
       function getStockOne(error, response, body){
@@ -57,6 +55,7 @@ module.exports = function (app) {
       };
 
       var setStockData = function(error, response, body, next){
+        // if there was no error, and the stock was found in the api request
         if (!error && response.statusCode == 200) {
           var data = JSON.parse(body.substring(3))[0];
 
@@ -66,7 +65,7 @@ module.exports = function (app) {
 
               collection.findAndModify(
                 { stock: data.t },
-                [],// sort order
+                [],// no sort order
                 like ? { $addToSet: { ips: ip } } : { $set: { stock: data.t } },
                 {
                   new: like,
@@ -89,5 +88,5 @@ module.exports = function (app) {
         } else next(); // the stock was not found in the api
       };// end setStockData
 
-    });// end getStockTwo
+    });// end get
 };
